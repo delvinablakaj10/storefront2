@@ -11,6 +11,8 @@ django-rest-framework = "*"
 drf-nested-routers = "*"
 django-filter = "*"
 djangorestframework = "*"
+djoser = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 black = "*"
