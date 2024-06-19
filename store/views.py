@@ -5,8 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
-from rest_framework.decorators import api_view, action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import action, api_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import (ListCreateAPIView,
                                      RetrieveUpdateDestroyAPIView)
@@ -14,21 +13,24 @@ from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
                                    ListModelMixin, RetrieveModelMixin,
                                    UpdateModelMixin)
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from .permissions import IsAdminOrReadOnly
 
 from . import views
-from .models import Cart, CartItem, Collection, Product, Review, Customer
+from .models import Cart, CartItem, Collection, Customer, Product, Review
 from .serializers import (AddCartItemSerializer, CartItemSerializer,
                           CartSerializer, CollectionSerializer,
-                          ProductSerializer, ReviewSerializer,
-                          UpdateCartItemSerializer, CustomerSerializer)
+                          CustomerSerializer, ProductSerializer,
+                          ReviewSerializer, UpdateCartItemSerializer)
 
 
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['collection_id']
     # pagination_class = PageNumberPagination
@@ -199,8 +201,8 @@ def collection_detail(request, id):
 
 class CollectionViewSet(ModelViewSet):
     queryset = Collection.objects.annotate(products_count=Count("products")).all()
-
     serializer_class = CollectionSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
     def delete(self, request, pk):
         collection = get_object_or_404(Collection, pk=pk)
@@ -248,10 +250,10 @@ class CartItemViewSet(ModelViewSet):
         return CartItem.objects.filter(cart_id=self.kwargs['cart_pk']).select_related('product')
 
 
-class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
+class CustomerViewSet(ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -259,7 +261,7 @@ class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Ge
         return [IsAuthenticated()]
 
      
-    @action(detail=False, methods=['GET', 'PUT'])
+    @action(detail=False, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated])
     def me(self, request):
         (customer, created) = Customer.objects.get_or_create(user_id=request.user.id)
         if request.method == 'GET':
