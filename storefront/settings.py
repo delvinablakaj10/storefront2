@@ -151,7 +151,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication'
-    ],
+    ]
 }
 
 AUTH_USER_MODEL = 'core.User'
@@ -169,3 +169,5 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
     'ACCESS_TOKEN_LIFETIME' :timedelta(days=5)
 }
+
+
