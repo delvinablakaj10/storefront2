@@ -13,14 +13,15 @@ from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
                                    ListModelMixin, RetrieveModelMixin,
                                    UpdateModelMixin)
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (AllowAny, DjangoModelPermissions,
+                                        IsAdminUser, IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
-from .permissions import IsAdminOrReadOnly
 
 from . import views
 from .models import Cart, CartItem, Collection, Customer, Product, Review
+from .permissions import FullDjangoModelPermissions, IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .serializers import (AddCartItemSerializer, CartItemSerializer,
                           CartSerializer, CollectionSerializer,
                           CustomerSerializer, ProductSerializer,
@@ -234,7 +235,7 @@ class CartViewSet(CreateModelMixin, GenericViewSet, RetrieveModelMixin, ListMode
 
 
 class CartItemViewSet(ModelViewSet):
-    http_method_names = ['post','get','patch','delete']
+    http_method_names = ['post', 'get', 'patch', 'delete']
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -253,13 +254,16 @@ class CartItemViewSet(ModelViewSet):
 class CustomerViewSet(ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminUser]
+
+    @action(detail=True, permission_classes = [ViewCustomerHistoryPermission])
+    def history(self, request, pk):
+        return Response('ok')
 
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
         return [IsAuthenticated()]
-
      
     @action(detail=False, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated])
     def me(self, request):
