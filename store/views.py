@@ -28,7 +28,7 @@ from .serializers import (AddCartItemSerializer, CartItemSerializer,
                           CartSerializer, CollectionSerializer,
                           CustomerSerializer, OrderSerializer,
                           ProductSerializer, ReviewSerializer,
-                          UpdateCartItemSerializer)
+                          UpdateCartItemSerializer, CreateOrderSerializer)
 
 
 class ProductViewSet(ModelViewSet):
@@ -284,6 +284,15 @@ class OrderViewSet(ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_context(self):
+        return {'user_id': self.request.user.id}
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CreateOrderSerializer
+        else:
+            return OrderSerializer
 
     def get_queryset(self):
         user = self.request.user
