@@ -20,12 +20,12 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from . import views
-from .models import Cart, CartItem, Collection, Customer, Product, Review
+from .models import Cart, CartItem, Collection, Customer, Product, Review, Order
 from .permissions import FullDjangoModelPermissions, IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .serializers import (AddCartItemSerializer, CartItemSerializer,
                           CartSerializer, CollectionSerializer,
                           CustomerSerializer, ProductSerializer,
-                          ReviewSerializer, UpdateCartItemSerializer)
+                          ReviewSerializer, UpdateCartItemSerializer, OrderSerializer)
 
 
 class ProductViewSet(ModelViewSet):
@@ -277,3 +277,7 @@ class CustomerViewSet(ModelViewSet):
             serializer.save()
             return Response(serializer.data)
 
+class OrderViewSet(ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    
