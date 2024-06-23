@@ -26,9 +26,9 @@ from .permissions import (FullDjangoModelPermissions, IsAdminOrReadOnly,
                           ViewCustomerHistoryPermission)
 from .serializers import (AddCartItemSerializer, CartItemSerializer,
                           CartSerializer, CollectionSerializer,
-                          CustomerSerializer, OrderSerializer,
-                          ProductSerializer, ReviewSerializer,
-                          UpdateCartItemSerializer, CreateOrderSerializer)
+                          CreateOrderSerializer, CustomerSerializer,
+                          OrderSerializer, ProductSerializer, ReviewSerializer,
+                          UpdateCartItemSerializer)
 
 
 class ProductViewSet(ModelViewSet):
@@ -280,13 +280,16 @@ class CustomerViewSet(ModelViewSet):
             serializer.save()
             return Response(serializer.data)
 
-class OrderViewSet(ModelViewSet):
+
+class OrderViewSet(ModelViewSet): 
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_serializer_context(self):
-        return {'user_id': self.request.user.id}
+    # permission_classes = [IsAuthenticated]
+    def create(self, request, *args, **kwargs):
+        serializer = CreateOrderSerializer(data=request.data, context = {'user_id': self.request.user.id})
+        order = serializer.save()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
